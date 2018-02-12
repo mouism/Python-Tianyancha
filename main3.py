@@ -167,16 +167,26 @@ def tyc_data(driver, url, keyword, maping):
                 source = driver.page_source.encode("utf-8")
                 tycdata = BeautifulSoup(source, 'html.parser')
                 binfo = []
-                reginfo = tycdata.select("div.item-line > span")
+                #reginfo = tycdata.select("div.item-line > span > text")
+                #reginfo = tycdata.select("div.item-line > span")
+                reginfo = tycdata.select("div.item-line > span") #全部
+                reginfotime = tycdata.select("div.item-line > span > text") #注册时间 资本 核准时间
                 bsocplist = tycdata.select("div.item-line > span > span > span.hidden > div")
                 gdinfo = ''
                 dwinfo = ''
                 gdlist = tycdata.select(
                     "div > div#_container_holder > div > div.content-container > div > div > a.in-block"
                 )
+                gdlistplus = tycdata.select(
+                    "div > div#_container_holder > div > div.content-container > div > div.mt10 > span.new-info > span"
+                )
+                
                 if(len(gdlist) != 0):
+                    nplus = 0
                     for gdname in gdlist:
-                        gdinfo += gdname.get_text() + "|,|"
+                        gdinfo += gdname.get_text() + gdlistplus[nplus].get_text() + "|"
+                        nplus += 1
+
                 dw_list = tycdata.select(
                     "div.content-container > div > a > span.text-click-color"
                 )
@@ -189,11 +199,11 @@ def tyc_data(driver, url, keyword, maping):
                         cmname,
                         noinfo,
                         reginfo[1].get_text() if len(reginfo[1].get_text()) > 0 else None,
-                        # 修改填充项
+                        reginfo[5].get_text() if len(reginfo[3].get_text()) > 0 else None,##注册资本
                         # regdecode(maping, reginfo[3].get_text()) if len(reginfo[3].get_text()) > 0 else None,
                         # regdecode(maping, reginfo[5].get_text()) if len(reginfo[5].get_text()) > 0 else None,
-                        reginfo[3].get_text() if len(reginfo[3].get_text()) > 0 else None,
-                        reginfo[5].get_text() if len(reginfo[5].get_text()) > 0 else None,
+                        #                        
+                        reginfo[3].get_text() if len(reginfo[5].get_text()) > 0 else None,##成立登记日期
                         noinfo,
                         reginfo[7].get_text(),
                         noinfo,
@@ -211,9 +221,16 @@ def tyc_data(driver, url, keyword, maping):
                         cmname,
                         reginfo[3].get_text() if len(reginfo[3].get_text()) > 0 else None,
                         reginfo[1].get_text() if len(reginfo[1].get_text()) > 0 else None,
-                        regdecode(maping, reginfo[7].get_text()) if len(reginfo[7].get_text()) > 0 else None,
-                        regdecode(maping, reginfo[5].get_text()) if len(reginfo[5].get_text()) > 0 else None,
-                        regdecode(maping, reginfo[23].get_text()) if len(reginfo[23].get_text()) > 0 else None,
+                        #reginfotime[1].get_text() if len(reginfotime[1].get_text()) > 0 else None,#注册资本
+                        #reginfotime[0].get_text() if len(reginfotime[0].get_text()) > 0 else None,#注册时间
+                        #reginfotime[2].get_text() if len(reginfotime[2].get_text()) > 0 else None,#核准时间
+                        #
+                        #regdecode(maping, reginfo[7].get_text()) if len(reginfo[7].get_text()) > 0 else None,
+                        #regdecode(maping, reginfo[5].get_text()) if len(reginfo[5].get_text()) > 0 else None,
+                        #regdecode(maping, reginfo[23].get_text()) if len(reginfo[23].get_text()) > 0 else None,
+                        regdecode(maping, reginfotime[1].get_text()) if len(reginfotime[1].get_text()) > 0 else None,
+                        regdecode(maping, reginfotime[0].get_text()) if len(reginfotime[0].get_text()) > 0 else None,
+                        regdecode(maping, reginfotime[2].get_text()) if len(reginfotime[2].get_text()) > 0 else None,
                         reginfo[13].get_text() if len(reginfo[13].get_text()) > 0 else None,
                         reginfo[15].get_text() if len(reginfo[15].get_text()) > 0 else None,
                         reginfo[17].get_text() if len(reginfo[17].get_text()) > 0 else None,
@@ -332,8 +349,14 @@ def getmaping(fontfile):
     im.show()
     im.save("t.png")
     fontimage = Image.open("t.png")
-    numlist = tuple(pytesseract.image_to_string(fontimage))
+    numlistget = tuple(pytesseract.image_to_string(fontimage))
     print(pytesseract.image_to_string(fontimage))
+    print(numlistget)
+    numlist = []
+    for bget in numlistget:
+        if bget != " ":
+            numlist.append(bget)
+    print(numlist)
     mapfont = {
         '0': str(numlist[0]),
         '1': str(numlist[1]),
